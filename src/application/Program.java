@@ -10,37 +10,28 @@ import java.text.SimpleDateFormat;
 
 public class Program {
     public static void main(String[] args) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+
         Connection conn = null;
         PreparedStatement st = null;
-        try{
+
+        try {
             conn = DB.getConnection();
             st = conn.prepareStatement(
-                    "INSERT INTO seller "
-                    + "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
-                    + " VALUES "
-                    + "(?, ?, ?, ?, ?)");
+                    "UPDATE seller "
+                            + "SET BaseSalary = BaseSalary + ? "
+                            + "WHERE"
+                            + "(DepartmentId = ?)");
 
-            st.setString(1, "Carl Purple");
-            st.setString(2, "carl@gmail.com");
-            st.setDate(3, new java.sql.Date(sdf.parse("22/04/1985").getTime()));
-            st.setDouble(4, 3000.0);
-            st.setInt(5, 4);
+            st.setDouble(1, 200.0);
+            st.setInt(2, 2);
 
             int rowsAffected = st.executeUpdate();
-            System.out.println("Done! Rows Affected: "+ rowsAffected);
 
-
+            System.out.println("Done! rows affected: " + rowsAffected);
         }
-        catch (SQLException e){
+        catch (SQLException e ){
             e.printStackTrace();
-        }
-        catch (ParseException e){
-            e.printStackTrace();
-        }
-        finally {
-            DB.closeStatement(st);
-            DB.closeConnection();
         }
     }
 }

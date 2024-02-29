@@ -1,10 +1,12 @@
 package application;
 
 import db.DB;
+import db.DbException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -13,25 +15,39 @@ public class Program {
 
 
         Connection conn = null;
-        PreparedStatement st = null;
+        Statement st = null;
 
         try {
             conn = DB.getConnection();
-            st = conn.prepareStatement(
-                    "UPDATE seller "
-                            + "SET BaseSalary = BaseSalary + ? "
-                            + "WHERE"
-                            + "(DepartmentId = ?)");
+            conn.setAutoCommit(false);
 
-            st.setDouble(1, 200.0);
-            st.setInt(2, 2);
+            st = conn.createStatement();
+            int rows1 = st.executeUpdate("UPDATE seller SET BaseSalary = 2090 WHERE DepartmentId = 1");
 
-            int rowsAffected = st.executeUpdate();
+            /*int x = 1;
+            if (x < 2) {
+            throw new SQLException("Fake Error");
+            }
+            */
 
-            System.out.println("Done! rows affected: " + rowsAffected);
+            int rows2 = st.executeUpdate("UPDATE seller SET BaseSalary = 3090 WHERE DepartmentId = 2");
+
+            conn.commit();
+
+            System.out.println("rows1 " + rows1);
+            System.out.println("rows2 " + rows2);
         }
         catch (SQLException e ){
-            e.printStackTrace();
+            try {
+                conn.rollback();
+                throw new DbException("Transaction rolled back! Caused by: " + e.getMessage());
+            } catch (SQLException ex) {
+                throw new DbException("Error trying to rollback! Caused by: "+ ex.getMessage());
+            }
+        }
+        finally {
+            DB.closeStatement(st);
+            DB.closeConnection();
         }
     }
 }
